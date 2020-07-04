@@ -71,14 +71,9 @@ def distance():
     return ds_front.getValue(), ds_right.getValue(), ds_back.getValue(), ds_left.getValue()
 
 
-print(distance())
-move(ROBOT_DIRECTION_FRONT)
-print(distance())
-
-
 # Main loop:
 # - perform simulation steps until Webots is stopping the controller
 while robot.step(timestep) != -1:
-    pass
-
+    move(ROBOT_DIRECTION_FRONT)
+    print(distance())
 # Enter here exit cleanup code.
