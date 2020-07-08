@@ -2,8 +2,9 @@
 
 # You may need to import some classes of the controller module. Ex:
 #  from controller import Robot, Motor, DistanceSensor
-from controller import Robot
+from controller import Robot, Motor, DistanceSensor
 from collections import namedtuple
+import sys
 
 ROBOT_ORIENTATION_NORTH = 300
 ROBOT_ORIENTATION_EAST = 301 #right
@@ -73,6 +74,11 @@ ds_left.enable(timestep)
 
 ds_right = robot.getDistanceSensor('ps2')
 ds_right.enable(timestep)   
+
+def runStep():
+    if robot.step(timestep) == -1:
+        sys.exit()
+        
 
 def get_speed():
     return 0.00628 * 1000
@@ -152,8 +158,13 @@ def move():
 # return distance in all directions
 ##############################
 ##############################
-def get_distance():     
-    return Distances(front=ds_front.getValue(), right=ds_right.getValue(), back=ds_back.getValue(), left=ds_left.getValue())
+def get_distance():
+    front = ds_front.getValue()
+    right = ds_right.getValue()
+    left = ds_back.getValue()
+    back = ds_left.getValue()
+     
+    return Distances(front=front, right=right, back=back, left=left)
 
 ##############################
 ##############################
@@ -168,8 +179,7 @@ def next_step():
 # Main loop:
 # - perform simulation steps until Webots is stopping the controller
 
-while True :
-    robot.step(timestep)
+while robot.step(timestep) != -1 :
     move()
     
 # Enter here exit cleanup code.
