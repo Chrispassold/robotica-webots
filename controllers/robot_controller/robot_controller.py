@@ -16,8 +16,8 @@ ROBOT_TURN_DIRECTION_RIGHT = 101
 ROBOT_DIRECTION_FRONT = 200
 ROBOT_DIRECTION_BACK = 203
 
-ROBOT_DIRECTION_POSITION_DEFAULT = 12.0
-ROBOT_TURN_POSITION_DEFAULT = 12.0
+ROBOT_DIRECTION_POSITION_DEFAULT = float('inf')
+ROBOT_TURN_POSITION_DEFAULT = float('inf')
 
 Distances = namedtuple('Distance', 'front right back left')
 
@@ -42,6 +42,8 @@ orientation = ROBOT_ORIENTATION_NORTH
 ##############################
 timestep = int(robot.getBasicTimeStep())
 
+print("TIMESTEP", timestep)
+
 ##############################
 ##############################
 # motors
@@ -49,6 +51,11 @@ timestep = int(robot.getBasicTimeStep())
 ##############################
 motorLeft = robot.getMotor('left wheel motor')
 motorRight = robot.getMotor('right wheel motor')
+
+motorLeft.setPosition(ROBOT_TURN_POSITION_DEFAULT)
+motorRight.setPosition(ROBOT_TURN_POSITION_DEFAULT)
+motorLeft.setVelocity(0.0)
+motorRight.setVelocity(0.0)
 
 ##############################
 ##############################
@@ -65,7 +72,10 @@ ds_left = robot.getDistanceSensor('ps5')
 ds_left.enable(timestep)
 
 ds_right = robot.getDistanceSensor('ps2')
-ds_right.enable(timestep)
+ds_right.enable(timestep)   
+
+def get_speed():
+    return 0.00628 * 1000
 
 ##############################
 ##############################
@@ -104,35 +114,45 @@ def update_orientation(turn_direction):
 ##############################
 def turn(direction):
     if direction == ROBOT_TURN_DIRECTION_LEFT:
-        motorRight.setPosition(ROBOT_TURN_POSITION_DEFAULT)
+        print("TURN LEFT")
+        motorRight.setVelocity(get_speed())
     elif direction == ROBOT_TURN_DIRECTION_RIGHT:
-        motorLeft.setPosition(ROBOT_TURN_POSITION_DEFAULT)
+        print("TURN RIGHT")
+        motorLeft.setVelocity(get_speed())
     else:
         print("INVALID TURN DIRECTION")
 
-    update_orientation(direction)
+    #update_orientation(direction)
 
 ##############################
 ##############################
 # move robot in a direction
 ##############################
 ##############################
-def move(direction):        
-    if direction == ROBOT_DIRECTION_FRONT:
-        motorLeft.setPosition(ROBOT_DIRECTION_POSITION_DEFAULT)
-        motorRight.setPosition(ROBOT_DIRECTION_POSITION_DEFAULT)
-    elif direction == ROBOT_DIRECTION_BACK:
-        motorLeft.setPosition(-ROBOT_DIRECTION_POSITION_DEFAULT)
-        motorRight.setPosition(-ROBOT_DIRECTION_POSITION_DEFAULT)
-    else:
-        print("INVALID MOVE DIRECTION")
+def move():         
+    dist = get_distance()
     
+    motorLeft.setVelocity(0)
+    motorRight.setVelocity(0)
+    
+    print(dist)
+    
+    mindist = 80
+    
+    if dist.front < mindist:
+        motorLeft.setVelocity(get_speed())
+        motorRight.setVelocity(get_speed())
+    elif dist.left < mindist:
+        turn(ROBOT_TURN_DIRECTION_LEFT)
+    elif dist.right < mindist:
+        turn(ROBOT_TURN_DIRECTION_RIGHT)    
+        
 ##############################
 ##############################
 # return distance in all directions
 ##############################
 ##############################
-def get_distance():        
+def get_distance():     
     return Distances(front=ds_front.getValue(), right=ds_right.getValue(), back=ds_back.getValue(), left=ds_left.getValue())
 
 ##############################
@@ -140,16 +160,16 @@ def get_distance():
 # execute next step
 ##############################
 ##############################
-def next_step():
-    dist = get_distance()
-    print(dist)
+def next_step():    
+    pass
+            
     
 
 # Main loop:
 # - perform simulation steps until Webots is stopping the controller
-while True:
+
+while True :
     robot.step(timestep)
-    next_step()
-    move(ROBOT_DIRECTION_FRONT)
+    move()
     
 # Enter here exit cleanup code.
